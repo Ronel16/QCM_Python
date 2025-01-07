@@ -9,6 +9,7 @@ class QCM:
         self.reponses_utilisateur = {}
 
     def _initialiser_questions(self):
+        """Initialise et mélange les questions"""
         questions = [
             Question("Quelle est la capitale de la France ?", 
                     ["Londres", "Paris", "Berlin"], 1),
@@ -31,41 +32,50 @@ class QCM:
             Question("Quelle est la plus haute montagne du monde ?", 
                     ["Mont Blanc", "Kilimandjaro", "Mont Everest"], 2)
         ]
-        random.shuffle(questions)
+        random.shuffle(questions)  # Mélange les questions
         return questions
 
     def poser_questions(self):
+        """Pose les questions dans un ordre aléatoire avec des réponses mélangées"""
         for i, question in enumerate(self.questions, 1):
             print(f"\nQuestion {i}: {question.texte}")
             
-            # Maintenant on garde l'ordre des réponses mais on mémorise la position de chaque réponse
-            choix = {}
-            reponses_melangees = list(enumerate(question.reponses))
-            random.shuffle(reponses_melangees)
+            # Création d'une liste de tuples (index_original, réponse)
+            reponses_indexees = list(enumerate(question.reponses))
+            # Mélange les réponses tout en gardant la trace de leur index original
+            random.shuffle(reponses_indexees)
             
-            # On trie les réponses pour les afficher dans l'ordre a, b, c
-            for index, (original_index, reponse) in enumerate(sorted(reponses_melangees)):
-                lettre = chr(97 + index)  # a, b, c
+            # Affiche les réponses dans l'ordre mélangé
+            mapping_reponses = {}  # Pour convertir la réponse utilisateur en index original
+            for choix, (index_original, reponse) in enumerate(reponses_indexees):
+                lettre = chr(97 + choix)  # 'a', 'b', 'c'
                 print(f"{lettre}) {reponse}")
-                choix[lettre] = original_index
+                mapping_reponses[lettre] = index_original
             
+            # Demande la réponse à l'utilisateur
             while True:
-                reponse = input("\nVotre réponse (a/b/c): ")
-                if reponse.lower() in ['a', 'b', 'c']:
+                reponse = input("\nVotre réponse (a/b/c): ").lower()
+                if reponse in ['a', 'b', 'c']:
                     break
                 print("Veuillez répondre par a, b ou c.")
-
+            
+            # Vérifie si la réponse est correcte
+            index_choisi = mapping_reponses[reponse]
+            est_correct = (index_choisi == question.bonne_reponse)
+            
+            # Sauvegarde les informations de la réponse
             self.reponses_utilisateur[i] = {
-                'lettre_choisie': reponse.lower(),
-                'reponse_choisie': question.reponses[choix[reponse.lower()]],
+                'lettre_choisie': reponse,
+                'reponse_choisie': question.reponses[index_choisi],
                 'bonne_reponse': question.reponses[question.bonne_reponse],
-                'est_correct': choix[reponse.lower()] == question.bonne_reponse
+                'est_correct': est_correct
             }
             
-            if self.reponses_utilisateur[i]['est_correct']:
+            if est_correct:
                 self.score += 1
 
     def afficher_resultats(self):
+        """Affiche le score final et le corrigé"""
         print("\n" + "="*50)
         print("RÉSULTATS DU QCM")
         print("="*50)
